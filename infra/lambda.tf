@@ -19,6 +19,13 @@ resource "aws_iam_policy" "dynamodb_access_policy_organisations" {
   policy = templatefile("templates/dynamo_access_policy.json", { table = "organisations" })
 }
 
+resource "aws_iam_policy" "cloudwatch_getmetricdata_policy" {
+  name = "metrics-api_cloudwatch_getmetricdata_policy"
+  path = "/"
+
+  policy = templatefile("templates/cloudwatch_metrics_read_access_policy.json", {})
+}
+
 
 module "api_lambda" {
   source    = "git@github.com:moggiez/terraform-modules.git//lambda_with_dynamo"
@@ -28,7 +35,8 @@ module "api_lambda" {
   policies = [
     aws_iam_policy.dynamodb_access_policy.arn,
     aws_iam_policy.dynamodb_access_policy_loadtests.arn,
-    aws_iam_policy.dynamodb_access_policy_organisations.arn
+    aws_iam_policy.dynamodb_access_policy_organisations.arn,
+    aws_iam_policy.cloudwatch_getmetricdata_policy.arn
   ]
   environment = local.environment
 }
