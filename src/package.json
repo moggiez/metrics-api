@@ -1,0 +1,32 @@
+{
+  "name": "metrics-api",
+  "version": "0.1.0",
+  "private": true,
+  "keywords": [
+    "moggiez"
+  ],
+  "dependencies": {
+    "moggies-auth": "^0.1.1",
+    "moggies-db": "^0.1.5",
+    "moggies-lambda-helpers": "^0.1.0",
+    "moggies-metrics": "^0.1.2"
+  },
+  "scripts": {
+    "test": "jest",
+    "lint": "prettier --check .",
+    "format": "prettier --write ."
+  },
+  "devDependencies": {
+    "jest": "^27.0.5",
+    "prettier": "2.3.2",
+    "uuid": "^8.3.2"
+  },
+  "jest": {
+    "testMatch": [
+      "<rootDir>/**/__tests__/*.test.js"
+    ],
+    "testPathIgnorePatterns": [
+      "__tests__/helpers.js"
+    ]
+  }
+}
