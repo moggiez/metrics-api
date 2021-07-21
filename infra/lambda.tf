@@ -5,12 +5,31 @@ resource "aws_iam_policy" "dynamodb_access_policy" {
   policy = templatefile("templates/dynamo_access_policy.json", { table = aws_dynamodb_table.loadtest_metrics.name })
 }
 
+resource "aws_iam_policy" "dynamodb_access_policy_loadtests" {
+  name = "metrics-api_lambda_access_dynamodb_policy_loadtests"
+  path = "/"
+
+  policy = templatefile("templates/dynamo_access_policy.json", { table = "loadtests" })
+}
+
+resource "aws_iam_policy" "dynamodb_access_policy_organisations" {
+  name = "metrics-api_lambda_access_dynamodb_policy_organisations"
+  path = "/"
+
+  policy = templatefile("templates/dynamo_access_policy.json", { table = "organisations" })
+}
+
+
 module "api_lambda" {
-  source      = "git@github.com:moggiez/terraform-modules.git//lambda_with_dynamo"
-  s3_bucket   = aws_s3_bucket._
-  dist_dir    = "../dist"
-  name        = "metrics-api"
-  policies    = [aws_iam_policy.dynamodb_access_policy.arn]
+  source    = "git@github.com:moggiez/terraform-modules.git//lambda_with_dynamo"
+  s3_bucket = aws_s3_bucket._
+  dist_dir  = "../dist"
+  name      = "metrics-api"
+  policies = [
+    aws_iam_policy.dynamodb_access_policy.arn,
+    aws_iam_policy.dynamodb_access_policy_loadtests.arn,
+    aws_iam_policy.dynamodb_access_policy_organisations.arn
+  ]
   environment = local.environment
 }
 
