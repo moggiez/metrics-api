@@ -1,4 +1,3 @@
-
 name: "Deployment"
 
 on:
@@ -90,6 +89,5 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_KEY }}
           aws-region: eu-west-1
 
-
-      - name: Deploy {{cookiecutter.api_name}} lambda
+      - name: Deploy metrics-api lambda
         run: make update-lambda-fn
