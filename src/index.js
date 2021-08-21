@@ -6,6 +6,7 @@ const db = require("@moggiez/moggies-db");
 const helpers = require("@moggiez/moggies-lambda-helpers");
 const auth = require("@moggiez/moggies-auth");
 const metricsHelpers = require("@moggiez/moggies-metrics");
+const { InternalHandler } = require("./internalHandler");
 const { Handler } = require("./handler");
 
 const organisationsTableConfig = {
@@ -48,7 +49,7 @@ const loadtestMetricsTableConfig = {
 
 const DEBUG = false;
 
-exports.handler = function (event, context, callback) {
+exports.handler = async function (event, context, callback) {
   const organisations = new db.Table({
     config: organisationsTableConfig,
     AWS: AWS,
@@ -61,6 +62,15 @@ exports.handler = function (event, context, callback) {
     config: loadtestMetricsTableConfig,
     AWS: AWS,
   });
+
+  if ("isInternal" in event && event.isInternal) {
+    if (DEBUG) {
+      return event;
+    }
+
+    const internalHandler = new InternalHandler({ loadtestMetrics });
+    return await internalHandler.handle(event);
+  }
 
   const response = helpers.getResponseFn(callback);
 
