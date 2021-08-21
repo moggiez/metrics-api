@@ -89,5 +89,5 @@ exports.handler = async function (event, context, callback) {
     loadtestMetrics,
     Metrics,
   });
-  handler.handle(request, response);
+  await handler.handle(request, response);
 };
