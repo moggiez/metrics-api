@@ -1,11 +1,12 @@
 const uuid = require("uuid");
 const { Handler } = require("../handler");
 const { buildLambdaRequest, mockTable, mockMetrics } = require("./helpers");
-const helpers = require("moggies-lambda-helpers");
-const auth = require("moggies-auth");
 
-const { Table } = require("moggies-db");
-jest.mock("moggies-db");
+const helpers = require("@moggiez/moggies-lambda-helpers");
+const auth = require("@moggiez/moggies-auth");
+
+const { Table } = require("@moggiez/moggies-db");
+jest.mock("@moggiez/moggies-db");
 
 const response = jest.fn();
 const organisations = mockTable({ tableName: "organisations" });

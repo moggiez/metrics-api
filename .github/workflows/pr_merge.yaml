@@ -1,4 +1,3 @@
-
 name: "Pull Request"
 
 on:
@@ -27,7 +26,9 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v2
         with:
-          node-version: "14"
+          node-version: 14
+          registry-url: https://npm.pkg.github.com/
+          scope: "@moggiez"
 
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v1
@@ -36,11 +37,10 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_KEY }}
           aws-region: eu-west-1
 
-      - name: Login to NPM
-        run: make npm-auth
-
       - name: Build lambdas and libs dev
         run: make build-dev
+        env:
+          NODE_AUTH_TOKEN: ${{secrets.GH_PAT_NPM}}
 
       - name: Install NPM modules
         run: npm i
@@ -108,13 +108,14 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v2
         with:
-          node-version: "14"
-
-      - name: Login to NPM
-        run: make npm-auth
+          node-version: 14
+          registry-url: https://npm.pkg.github.com/
+          scope: "@moggiez"
 
       - name: Build lambdas
         run: make build
+        env:
+          NODE_AUTH_TOKEN: ${{secrets.GH_PAT_NPM}}
 
       # Build packages and generates an execution plan for Terraform
       - name: Preview deployment
@@ -123,4 +124,3 @@ jobs:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_KEY }}
           AWS_DEFAULT_REGION: "eu-west-1"
-

@@ -33,3 +33,4 @@ dist/
 node_modules/
 coverage/
 report.json
+src/.npmrc

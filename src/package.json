@@ -6,10 +6,10 @@
     "moggiez"
   ],
   "dependencies": {
-    "moggies-auth": "^0.1.1",
-    "moggies-db": "^0.1.5",
-    "moggies-lambda-helpers": "^0.1.0",
-    "moggies-metrics": "^0.1.2"
+    "@moggiez/moggies-auth": "^0.2.0",
+    "@moggiez/moggies-db": "^0.2.0",
+    "@moggiez/moggies-lambda-helpers": "^0.2.1",
+    "@moggiez/moggies-metrics": "^0.2.0"
   },
   "scripts": {
     "test": "jest",

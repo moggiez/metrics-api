@@ -41,9 +41,9 @@ format:
 test:
 	npm run test
 
-update-lambda-fn:
+update-lambda-fn: build
 	aws lambda update-function-code --function-name metrics-api --zip-file fileb://$(shell pwd)/dist/metrics-api.zip --publish | jq .FunctionArn
 
 # NPM COMMANDS
 npm-auth:
-	aws codeartifact login --tool npm --repository team-npm --domain moggies-io --domain-owner 989665778089
+	./scripts/npm_auth.sh

@@ -90,16 +90,23 @@ class Handler {
 
   post = async (user, loadtestId, metricName, data, response) => {
     try {
-      const orgData = await this.organisations.getBySecondaryIndex(
-        "UserOrganisations",
-        user.id
-      );
+      const orgData = await this.organisations.query({
+        indexName: "UserOrganisations",
+        hashKey: user.id,
+      });
       const orgId = orgData.Items[0].OrganisationId;
-      const loadtestData = await this.loadtests.get(orgId, loadtestId);
+      const loadtestData = await this.loadtests.get({
+        hashKey: orgId,
+        sortKey: loadtestId,
+      });
       const loadtest = loadtestData.Item;
       if (loadtest && loadtest != null) {
-        await this.loadtestMetrics.create(loadtestId, metricName, {
-          Data: data,
+        await this.loadtestMetrics.create({
+          hashKey: loadtestId,
+          sortKey: metricName,
+          record: {
+            Data: data,
+          },
         });
         response(201, "Created");
       }
@@ -110,25 +117,28 @@ class Handler {
   };
 
   getLoadtest = async (user, loadtestId) => {
-    const orgData = await this.organisations.getBySecondaryIndex(
-      "UserOrganisations",
-      user.id
-    );
+    const orgData = await this.organisations.query({
+      indexName: "UserOrganisations",
+      hashKey: user.id,
+    });
     if (orgData.Items.length == 0) {
       throw new Error("Organisation not found.");
     } else {
       const orgId = orgData.Items[0].OrganisationId;
-      const loadtestData = await this.loadtests.get(orgId, loadtestId);
+      const loadtestData = await this.loadtests.get({
+        hashKey: orgId,
+        sortKey: loadtestId,
+      });
       return "Item" in loadtestData ? loadtestData.Item : null;
     }
   };
 
   getFromDB = async (loadtestId, metricName) => {
     try {
-      const loadtestMetricsData = await this.loadtestMetrics.get(
-        loadtestId,
-        metricName
-      );
+      const loadtestMetricsData = await this.loadtestMetrics.get({
+        hashKey: loadtestId,
+        sortKey: metricName,
+      });
       if (loadtestMetricsData && "Item" in loadtestMetricsData) {
         return loadtestMetricsData.Item;
       } else {

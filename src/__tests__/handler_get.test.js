@@ -7,8 +7,8 @@ const {
   getPromiseWithReject,
 } = require("./helpers");
 
-const { Table } = require("moggies-db");
-jest.mock("moggies-db");
+const { Table } = require("@moggiez/moggies-db");
+jest.mock("@moggiez/moggies-db");
 
 const response = jest.fn();
 
@@ -24,7 +24,7 @@ describe("Handler.get", () => {
     const Metrics = mockMetrics();
 
     // Arrange
-    organisations.getBySecondaryIndex.mockReturnValue(
+    organisations.query.mockReturnValue(
       getPromiseWithReturnValue({ Items: [] })
     );
     const handler = new Handler({
@@ -39,10 +39,10 @@ describe("Handler.get", () => {
     const user = { id: uuid.v4() };
     await handler.get(user, loadtestId, metricName, response);
 
-    expect(organisations.getBySecondaryIndex).toHaveBeenCalledWith(
-      "UserOrganisations",
-      user.id
-    );
+    expect(organisations.query).toHaveBeenCalledWith({
+      indexName: "UserOrganisations",
+      hashKey: user.id,
+    });
     expect(response).toHaveBeenCalledWith(401, "Unauthorized");
   });
 
@@ -55,7 +55,7 @@ describe("Handler.get", () => {
     // Arrange
     const orgId = uuid.v4();
     const user = { id: uuid.v4() };
-    organisations.getBySecondaryIndex.mockReturnValue(
+    organisations.query.mockReturnValue(
       getPromiseWithReturnValue({
         Items: [{ OrganisationId: orgId, UserId: user.id }],
       })
@@ -72,7 +72,10 @@ describe("Handler.get", () => {
     const loadtestId = uuid.v4();
     await handler.get(user, loadtestId, metricName, response);
 
-    expect(loadtests.get).toHaveBeenCalledWith(orgId, loadtestId);
+    expect(loadtests.get).toHaveBeenCalledWith({
+      hashKey: orgId,
+      sortKey: loadtestId,
+    });
     expect(response).toHaveBeenCalledWith(401, "Unauthorized");
   });
 
@@ -90,7 +93,7 @@ describe("Handler.get", () => {
       MetricsData: { someField: uuid.v4() },
       UpdatedAt: uuid.v4(),
     };
-    organisations.getBySecondaryIndex.mockReturnValue(
+    organisations.query.mockReturnValue(
       getPromiseWithReturnValue({
         Items: [{ OrganisationId: orgId, UserId: user.id }],
       })
@@ -111,7 +114,10 @@ describe("Handler.get", () => {
     const metricName = "ResponseTime";
     await handler.get(user, loadtestId, metricName, response);
 
-    expect(loadtestMetrics.get).toHaveBeenCalledWith(loadtestId, metricName);
+    expect(loadtestMetrics.get).toHaveBeenCalledWith({
+      hashKey: loadtestId,
+      sortKey: metricName,
+    });
     expect(response).toHaveBeenCalledWith(200, {
       ...metricsDataItem.MetricsData,
       UpdatedAt: metricsDataItem.UpdatedAt,
@@ -133,7 +139,7 @@ describe("Handler.get", () => {
     const metricsDataItem = {
       MetricsData: { someField: uuid.v4() },
     };
-    organisations.getBySecondaryIndex.mockReturnValue(
+    organisations.query.mockReturnValue(
       getPromiseWithReturnValue({
         Items: [{ OrganisationId: orgId, UserId: user.id }],
       })
@@ -156,7 +162,10 @@ describe("Handler.get", () => {
     const metricName = "ResponseTime";
     await handler.get(user, loadtestId, metricName, response);
 
-    expect(loadtestMetrics.get).toHaveBeenCalledWith(loadtestId, metricName);
+    expect(loadtestMetrics.get).toHaveBeenCalledWith({
+      hashKey: loadtestId,
+      sortKey: metricName,
+    });
     expect(
       Metrics.generateGetMetricsDataParamsForLoadtest
     ).toHaveBeenCalledWith(loadtestItem, metricName);
@@ -175,7 +184,7 @@ describe("Handler.get", () => {
     const user = { id: uuid.v4() };
     const loadtestId = uuid.v4();
     const loadtestItem = { LoadtestId: loadtestId };
-    organisations.getBySecondaryIndex.mockReturnValue(
+    organisations.query.mockReturnValue(
       getPromiseWithReturnValue({
         Items: [{ OrganisationId: orgId, UserId: user.id }],
       })

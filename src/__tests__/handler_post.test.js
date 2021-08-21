@@ -7,8 +7,8 @@ const {
   mockMetrics,
 } = require("./helpers");
 
-const { Table } = require("moggies-db");
-jest.mock("moggies-db");
+const { Table } = require("@moggiez/moggies-db");
+jest.mock("@moggiez/moggies-db");
 
 const response = jest.fn();
 const organisations = mockTable({ tableName: "organisations" });
@@ -28,7 +28,7 @@ describe("Handler.post", () => {
   });
 
   it("returns 500 when organisations throws an error", async () => {
-    organisations.getBySecondaryIndex.mockImplementation(() =>
+    organisations.query.mockImplementation(() =>
       getPromiseWithReject("This is my error")
     );
 
@@ -36,19 +36,17 @@ describe("Handler.post", () => {
     const handler = new Handler(handlerArgs);
     await handler.post(user, uuid.v4(), uuid.v4(), {}, response);
 
-    expect(organisations.getBySecondaryIndex).toHaveBeenCalledWith(
-      "UserOrganisations",
-      user.id
-    );
+    expect(organisations.query).toHaveBeenCalledWith({
+      indexName: "UserOrganisations",
+      hashKey: user.id,
+    });
     expect(response).toHaveBeenCalledWith(500, "Internal server error");
   });
 
   it("returns 500 when loadtests throws an error", async () => {
     const loadtestId = uuid.v4();
     const orgsData = { Items: [{ OrganisationId: uuid.v4() }] };
-    organisations.getBySecondaryIndex.mockReturnValue(
-      getPromiseWithReturnValue(orgsData)
-    );
+    organisations.query.mockReturnValue(getPromiseWithReturnValue(orgsData));
     loadtests.get.mockImplementation(() =>
       getPromiseWithReject("This is my error")
     );
@@ -57,10 +55,10 @@ describe("Handler.post", () => {
     const handler = new Handler(handlerArgs);
     await handler.post(user, loadtestId, uuid.v4(), {}, response);
 
-    expect(loadtests.get).toHaveBeenCalledWith(
-      orgsData.Items[0].OrganisationId,
-      loadtestId
-    );
+    expect(loadtests.get).toHaveBeenCalledWith({
+      hashKey: orgsData.Items[0].OrganisationId,
+      sortKey: loadtestId,
+    });
     expect(response).toHaveBeenCalledWith(500, "Internal server error");
   });
 
@@ -70,30 +68,28 @@ describe("Handler.post", () => {
     const data = { test: uuid.v4() };
     const orgsData = { Items: [{ OrganisationId: uuid.v4() }] };
     const loadtestData = { Item: {} };
-    organisations.getBySecondaryIndex.mockReturnValue(
-      getPromiseWithReturnValue(orgsData)
-    );
+    organisations.query.mockReturnValue(getPromiseWithReturnValue(orgsData));
     loadtests.get.mockReturnValue(getPromiseWithReturnValue(loadtestData));
 
     const user = { id: uuid.v4() };
     const handler = new Handler(handlerArgs);
     await handler.post(user, loadtestId, metricName, data, response);
 
-    expect(organisations.getBySecondaryIndex).toHaveBeenCalledWith(
-      "UserOrganisations",
-      user.id
-    );
-    expect(loadtests.get).toHaveBeenCalledWith(
-      orgsData.Items[0].OrganisationId,
-      loadtestId
-    );
-    expect(loadtestMetrics.create).toHaveBeenCalledWith(
-      loadtestId,
-      metricName,
-      {
+    expect(organisations.query).toHaveBeenCalledWith({
+      indexName: "UserOrganisations",
+      hashKey: user.id,
+    });
+    expect(loadtests.get).toHaveBeenCalledWith({
+      hashKey: orgsData.Items[0].OrganisationId,
+      sortKey: loadtestId,
+    });
+    expect(loadtestMetrics.create).toHaveBeenCalledWith({
+      hashKey: loadtestId,
+      sortKey: metricName,
+      record: {
         Data: data,
-      }
-    );
+      },
+    });
     expect(response).toHaveBeenCalledWith(201, "Created");
   });
 });

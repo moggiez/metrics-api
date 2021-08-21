@@ -1,37 +1,76 @@
 "use strict";
 
 const AWS = require("aws-sdk");
-const db = require("moggies-db");
+const db = require("@moggiez/moggies-db");
 
-const helpers = require("moggies-lambda-helpers");
-const auth = require("moggies-auth");
-const metricsHelpers = require("moggies-metrics");
-const config = require("./config");
+const helpers = require("@moggiez/moggies-lambda-helpers");
+const auth = require("@moggiez/moggies-auth");
+const metricsHelpers = require("@moggiez/moggies-metrics");
 const { Handler } = require("./handler");
 
+const organisationsTableConfig = {
+  tableName: "organisations",
+  hashKey: "OrganisationId",
+  sortKey: "UserId",
+  indexes: {
+    UserOrganisations: {
+      hashKey: "UserId",
+      sortKey: "OrganisationId",
+    },
+  },
+};
+
+const loadtestsTableConfig = {
+  tableName: "loadtests",
+  hashKey: "OrganisationId",
+  sortKey: "LoadtestId",
+  indexes: {
+    PlaybookLoadtestIndex: {
+      hashKey: "PlaybookId",
+      sortKey: "LoadtestId",
+    },
+    UsersLoadtestsIndex: {
+      hashKey: "UserId",
+      sortKey: "LoadtestId",
+    },
+    CreatedAtHourIndex: {
+      hashKey: "CreatedAtHour",
+      sortKey: "MetricsSavedDate",
+    },
+  },
+};
+
+const loadtestMetricsTableConfig = {
+  tableName: "loadtest_metrics",
+  hashKey: "LoadtestId",
+  sortKey: "MetricName",
+};
+
+const DEBUG = false;
+
 exports.handler = function (event, context, callback) {
+  const organisations = new db.Table({
+    config: organisationsTableConfig,
+    AWS: AWS,
+  });
+  const loadtests = new db.Table({
+    config: loadtestsTableConfig,
+    AWS: AWS,
+  });
+  const loadtestMetrics = new db.Table({
+    config: loadtestMetricsTableConfig,
+    AWS: AWS,
+  });
+
   const response = helpers.getResponseFn(callback);
 
-  if (config.DEBUG) {
+  if (DEBUG) {
     response(200, event);
   }
 
   const user = auth.getUserFromEvent(event);
   const request = helpers.getRequestFromEvent(event);
   request.user = user;
-
-  const organisations = new db.Table({
-    config: db.tableConfigs.organisations,
-    AWS: AWS,
-  });
-  const loadtests = new db.Table({
-    config: db.tableConfigs.loadtests,
-    AWS: AWS,
-  });
-  const loadtestMetrics = new db.Table({
-    config: db.tableConfigs.loadtest_metrics,
-    AWS: AWS,
-  });
   const CloudWatch = new AWS.CloudWatch({ apiVersion: "2010-08-01" });
   const Metrics = new metricsHelpers.Metrics(CloudWatch);
   const handler = new Handler({
